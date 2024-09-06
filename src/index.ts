@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import dotenv from "dotenv"
 import connectDB from "./config/db";
 import cors from "cors"
@@ -7,6 +7,7 @@ import passport from "passport";
 import router from "./routes/user";
 import { googleStrategy } from "./config/googleStrategy";
 import { linkedinStrategy } from "./config/linkedinStrategy";
+import { isAuthenticated } from "./middlewares/authMiddleware";
 
 const app = express()
 
@@ -37,10 +38,25 @@ passport.use(linkedinStrategy)
 
 // Use the user-related routes under the "/api" endpoint
 app.use("/api", router);
-app.get("/", (req, res)=>{
-  res.end("hi..........")
-
-})
+app.get("/", isAuthenticated, (req: Request, res: Response) => {
+  // If user is authenticated, retrieve their email
+  const user = req.user as any; // 'req.user' is available after successful login
+  if (user) {
+    res.status(200).json({
+      status: 200,
+      success: true,
+      message: "Welcome to the home page",
+      details: { email: user.email }, // Display user's email
+    });
+  } else {
+    res.status(403).json({
+      status: 403,
+      success: false,
+      message: "User not authenticated",
+      details: null,
+    });
+  }
+});
 
 const PORT = process.env.PORT || 3000
 app.listen(PORT, ()=>{

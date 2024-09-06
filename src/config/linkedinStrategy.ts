@@ -14,7 +14,7 @@ export const linkedinAuth = passport.authenticate('linkedin', {
 });
 
 export const linkedinAuthCallback = passport.authenticate('linkedin', {
-  failureRedirect: '/',
+  failureRedirect: '/login',
 });
 
 export const linkedinAuthRedirect = (req: Request, res: Response): void => {
@@ -28,10 +28,11 @@ export const linkedinStrategy = new LinkedInStrategy(
     clientID: process.env.LINKEDIN_CLIENT_ID!,
     clientSecret: process.env.LINKEDIN_CLIENT_SECRET!,
     callbackURL: process.env.LINKEDIN_CALLBACK_URL!,
-    scope: ['profile', 'email'],
+    scope: ['profile', 'email', "openid"],
   },
   async (accessToken: string, refreshToken: string, profile: LinkedInProfile, done: passport.DoneCallback) => {
     try {
+      console.log("profile is ", profile)
       const result = await createUser(profile);
       if (result.success) {
         return done(null, result.user);

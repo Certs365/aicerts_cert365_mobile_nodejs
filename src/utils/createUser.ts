@@ -1,4 +1,4 @@
-import { Profile } from "passport";
+
 import User, {IUser} from "../models/user";
 
 interface CreateUserResponse {
@@ -9,12 +9,13 @@ interface CreateUserResponse {
   details?: string;
 }
 
-export const createUser = async (profile: Profile): Promise<CreateUserResponse> => {
+export const createUser = async (profile: any): Promise<CreateUserResponse> => {
   try {
-    const { id, displayName, emails } = profile;
+    const { id, displayName, emails , email} = profile;
 
     // Check if emails is defined and has at least one email
-    const userEmail = emails && emails.length > 0 ? emails[0].value : null;
+    const userEmail = email || (emails && emails.length > 0 ? emails[0].value : null);
+
 
     if (!userEmail) {
       return {

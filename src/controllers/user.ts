@@ -8,7 +8,12 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
 
   // Basic input validation
   if (!username || !email || !password || !sourceApp) {
-    res.status(400).json({ message: "All fields are required" });
+    res.status(400).json({
+      status: 400,
+      success: false,
+      message: "All fields are required",
+      details: null,
+    });
     return;
   }
 
@@ -16,7 +21,12 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
     // Check if the user already exists
     const userExists = await User.findOne({ email });
     if (userExists) {
-      res.status(400).json({ message: "User already exists" });
+      res.status(400).json({
+        status: 400,
+        success: false,
+        message: "User already exists",
+        details: null,
+      });
       return;
     }
 
@@ -25,17 +35,18 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
       username,
       email,
       password,
-      sourceApp
+      sourceApp,
     });
 
     // Save the user to the database
     await user.save();
-    console.log(user);
 
-    // Return the user details in the response
+    // Return success response with user details
     res.status(201).json({
+      status: 201,
+      success: true,
       message: "User registered successfully",
-      user: {
+      details: {
         id: user._id,
         username: user.username,
         email: user.email,
@@ -43,22 +54,33 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
       },
     });
   } catch (error) {
-    // Handle specific Mongoose errors
+    let statusCode = 500;
+    let errorMessage = "Internal server error";
+    let errorDetails: any = null;
+
+    // Handle specific Mongoose validation errors
     if (error instanceof mongoose.Error.ValidationError) {
-      // Handle validation errors (e.g., invalid email format)
       const messages = Object.values(error.errors).map((val) => val.message);
-      res.status(400).json({ message: messages.join(", ") });
-      return;
+      statusCode = 400;
+      errorMessage = "Validation error";
+      errorDetails = messages.join(", ");
     }
 
-    if (error instanceof mongoose.MongooseError) {
-      // Handle unique constraint errors (e.g., duplicate email)
-      res.status(400).json({ message: "Email already in use" });
-      return;
+    // Handle unique constraint errors (e.g., duplicate email)
+    else if (error instanceof mongoose.MongooseError) {
+      statusCode = 400;
+      errorMessage = "Email already in use";
     }
 
-    // General error handling
+    // Log error details for further investigation
     console.error("Signup error:", error);
-    res.status(500).json({ message: "Internal server error" });
+
+    // Return standardized error response
+    res.status(statusCode).json({
+      status: statusCode,
+      success: false,
+      message: errorMessage,
+      details: errorDetails,
+    });
   }
 };

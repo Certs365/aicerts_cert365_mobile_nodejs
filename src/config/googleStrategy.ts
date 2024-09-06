@@ -27,7 +27,7 @@ import { createUser } from "../utils/createUser";
         if (result.success) {
           return done(null, result.user);
         } else {
-          return done(new Error(result.message), null);
+          return done(null, false, { message: result.message || "Authentication failed" });
         }
       } catch (error) {
         return done(error as Error, null);
@@ -58,7 +58,7 @@ export const googleAuth = passport.authenticate("google", {
 });
 
 export const googleAuthCallback = passport.authenticate("google", {
-  failureRedirect: "/",
+  failureRedirect: "/login",
 });
 
 export const googleAuthRedirect = (req: Request, res: Response) => {
