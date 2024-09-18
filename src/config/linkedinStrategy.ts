@@ -32,10 +32,10 @@ export const linkedinStrategy = new LinkedInStrategy(
   },
   async (accessToken: string, refreshToken: string, profile: LinkedInProfile, done: passport.DoneCallback) => {
     try {
-      console.log("profile is ", profile)
-      const result = await createUser(profile);
-      if (result.success) {
-        return done(null, result.user);
+      
+      const result = await createUser(profile, accessToken);
+      if (result.status) {
+        return done(null, result);
       } else {
         return done(new Error(result.message), null);
       }
@@ -46,13 +46,12 @@ export const linkedinStrategy = new LinkedInStrategy(
 );
 
 passport.serializeUser((user: any, done: (err: any, id?: any) => void) => {
-    done(null, user.id);
+    done(null, user.details._id);
   });
 
-passport.deserializeUser(async (id: string, done: (err: any, user?: IUser | null) => void) => {
+passport.deserializeUser(async (id: string, done: (err: any, user?: IUser | null,) => void) => {
   try {
     const user = await User.findById(id); // Retrieve user by ID
-    console.log('user in deserialize', user);
     done(null, user);
   } catch (error) {
     done(error as Error, null);

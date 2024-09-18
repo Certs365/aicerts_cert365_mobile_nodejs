@@ -23,9 +23,10 @@ import { createUser } from "../utils/createUser";
     },
     async (accessToken: string, refreshToken: string, profile: Profile, done: VerifyCallback) => {
       try {
-        const result = await createUser(profile);
-        if (result.success) {
-          return done(null, result.user);
+     
+        const result = await createUser(profile, accessToken);
+        if (result.status) {
+          return done(null, result);
         } else {
           return done(null, false, { message: result.message || "Authentication failed" });
         }
@@ -38,14 +39,13 @@ import { createUser } from "../utils/createUser";
 
 // Serialize user ID into session
 passport.serializeUser((user: any, done: (err: any, id?: any) => void) => {
-  done(null, user.id);
+  done(null, user.details._id);
 });
 
 // Deserialize user from session
 passport.deserializeUser(async (id: string, done: (err: any, user?: any) => void) => {
   try {
     const user = await User.findById(id);
-    console.log("user in deserialize", user);
     done(null, user);
   } catch (error) {
     done(error as Error, null);

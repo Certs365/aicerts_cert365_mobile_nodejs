@@ -2,14 +2,14 @@
 import User, {IUser} from "../models/user";
 
 interface CreateUserResponse {
-  status: number;
-  success: boolean;
+  code: number;
+  status: boolean;
   user?: IUser;
   message?: string;
-  details?: string;
+  details?: object;
 }
 
-export const createUser = async (profile: any): Promise<CreateUserResponse> => {
+export const createUser = async (profile: any, accessToken:string): Promise<CreateUserResponse> => {
   try {
     const { id, displayName, emails , email} = profile;
 
@@ -19,8 +19,8 @@ export const createUser = async (profile: any): Promise<CreateUserResponse> => {
 
     if (!userEmail) {
       return {
-        status: 400,
-        success: false,
+        code: 400,
+        status: false,
         message: "Email is required",
       };
     }
@@ -45,19 +45,27 @@ export const createUser = async (profile: any): Promise<CreateUserResponse> => {
         await user.save();
       }
     }
+    const response={
+      _id:user._id,
+      userId : user.googleId,
+      email:user.email,
+      userName:user.username,
+      token:accessToken
+    }
 
     return {
-      status: 200,
-      success: true,
-      user,
+      code: 200,
+      status: true,
+      details:response
     };
   } catch (error) {
+    const detail = error instanceof Error ? error.message : "Unknown error"
     // Handle errors
     return {
-      status: 400,
-      success: false,
+      code: 400,
+      status: false,
       message: "Error while creating user",
-      details: error instanceof Error ? error.message : "Unknown error",
+      details: {detail}
     };
   }
 };
