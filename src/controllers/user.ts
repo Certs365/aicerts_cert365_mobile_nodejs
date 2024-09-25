@@ -1,5 +1,5 @@
 import mongoose, { MongooseError } from "mongoose";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import User from "../models/user";
 
 // Define the signup controller function with typed parameters
@@ -83,4 +83,28 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
       details: errorDetails,
     });
   }
+};
+
+export const logoutHandler = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  req.logOut((err) => {
+    if (err) {
+      next(err);
+    }
+    req.session.destroy((err) => {
+      if (err) {
+        next(err);
+      }
+      res.clearCookie("connect.sid");
+      res.status(200).json({
+        code: 200,
+        status: true,
+        message: "User logout Successfully..",
+        details: "",
+      });
+    });
+  });
 };

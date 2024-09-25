@@ -67,7 +67,20 @@ app.get("/", isAuthenticated, (req: Request, res: Response) => {
     console.log("Authentication successfull...")
 
      // Redirect the user to the deep link
-     res.redirect(deepLink);
+     // Return an HTML page with JavaScript for redirection
+     res.send(`
+      <html>
+        <head>
+          <title>Redirecting...</title>
+          <script type="text/javascript">
+            window.location.href = "${deepLink}";
+          </script>
+        </head>
+        <body>
+          Redirecting...
+        </body>
+      </html>
+    `);
   } else {
     res.status(403).json({
       status: 403,
