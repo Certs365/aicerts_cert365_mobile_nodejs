@@ -11,6 +11,7 @@ dotenv.config();
 import { Request, Response, NextFunction } from "express";
 import User from "../models/user";
 import { createUser } from "../utils/createUser";
+import CustomError from "../middlewares/customError";
 
 // Configure Google OAuth2 strategy
 
@@ -28,10 +29,10 @@ import { createUser } from "../utils/createUser";
         if (result.status) {
           return done(null, result);
         } else {
-          return done(null, false, { message: result.message || "Authentication failed" });
+          return done(new CustomError(result.message || "Error while creating user", 400)); // Use standardized error
         }
       } catch (error) {
-        return done(error as Error, null);
+        return done(new CustomError("Internal server error", 500)); // Handle any unexpected errors
       }
     }
   )
@@ -48,7 +49,7 @@ passport.deserializeUser(async (id: string, done: (err: any, user?: any) => void
     const user = await User.findById(id);
     done(null, user);
   } catch (error) {
-    done(error as Error, null);
+    done(new CustomError("Failed to deserialize user", 500));
   }
 });
 

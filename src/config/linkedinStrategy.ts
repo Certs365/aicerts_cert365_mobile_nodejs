@@ -4,6 +4,7 @@ import passport from 'passport';
 import User, { IUser } from '../models/user'; // Adjust path if needed
 import { createUser } from '../utils/createUser'; // Adjust path if needed
 import { Request, Response } from 'express';
+import CustomError from '../middlewares/customError';
 
 dotenv.config();
 
@@ -37,10 +38,12 @@ export const linkedinStrategy = new LinkedInStrategy(
       if (result.status) {
         return done(null, result);
       } else {
-        return done(new Error(result.message), null);
+         // Use CustomError for standardized error response
+         return done(new CustomError(result.message || "Error while creating user", 400));
       }
     } catch (error) {
-      return done(error as Error, null);
+      // Return an internal server error if something goes wrong
+      return done(new CustomError("Internal server error", 500));
     }
   }
 );
@@ -54,6 +57,6 @@ passport.deserializeUser(async (id: string, done: (err: any, user?: IUser | null
     const user = await User.findById(id); // Retrieve user by ID
     done(null, user);
   } catch (error) {
-    done(error as Error, null);
+    done(new CustomError("Failed to deserialize user", 500));
   }
 });

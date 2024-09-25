@@ -8,6 +8,7 @@ import router from "./routes/user";
 import { googleStrategy } from "./config/googleStrategy";
 import { linkedinStrategy } from "./config/linkedinStrategy";
 import { isAuthenticated } from "./middlewares/authMiddleware";
+import errorHandler from "./middlewares/errorHandler";
 
 const app = express();
 
@@ -90,6 +91,8 @@ app.get("/", isAuthenticated, (req: Request, res: Response) => {
     });
   }
 });
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

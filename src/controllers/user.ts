@@ -1,6 +1,7 @@
 import mongoose, { MongooseError } from "mongoose";
 import { NextFunction, Request, Response } from "express";
 import User from "../models/user";
+import CustomError from "../middlewares/customError";
 
 // Define the signup controller function with typed parameters
 export const signup = async (req: Request, res: Response): Promise<void> => {
@@ -92,17 +93,17 @@ export const logoutHandler = (
 ) => {
   req.logOut((err) => {
     if (err) {
-      next(err);
+      return next(new CustomError("Logout failed", 500)); // Use CustomError for logout error
     }
     req.session.destroy((err) => {
       if (err) {
-        next(err);
+        return next(new CustomError("Session destruction failed", 500)); // Use CustomError for session error
       }
       res.clearCookie("connect.sid");
       res.status(200).json({
         code: 200,
         status: true,
-        message: "User logout Successfully..",
+        message: "User logged out successfully.",
         details: "",
       });
     });

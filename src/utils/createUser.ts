@@ -1,5 +1,6 @@
+import CustomError from "../middlewares/customError";
+import User, { IUser } from "../models/user"; // Adjust path if needed
 
-import User, {IUser} from "../models/user";
 
 interface CreateUserResponse {
   code: number;
@@ -9,20 +10,15 @@ interface CreateUserResponse {
   details?: object;
 }
 
-export const createUser = async (profile: any, accessToken:string): Promise<CreateUserResponse> => {
+export const createUser = async (profile: any, accessToken: string): Promise<CreateUserResponse> => {
   try {
-    const { id, displayName, emails , email} = profile;
+    const { id, displayName, emails, email } = profile;
 
     // Check if emails is defined and has at least one email
     const userEmail = email || (emails && emails.length > 0 ? emails[0].value : null);
 
-
     if (!userEmail) {
-      return {
-        code: 400,
-        status: false,
-        message: "Email is required",
-      };
+      throw new CustomError("Email is required", 400); // Use CustomError here
     }
 
     // Check if user exists by googleId
@@ -35,6 +31,7 @@ export const createUser = async (profile: any, accessToken:string): Promise<Crea
         user.googleId = id;
         await user.save();
       } else {
+        // Create a new user if not found
         user = new User({
           googleId: id,
           username: displayName,
@@ -45,27 +42,31 @@ export const createUser = async (profile: any, accessToken:string): Promise<Crea
         await user.save();
       }
     }
-    const response={
-      _id:user._id,
-      userId : user.googleId,
-      email:user.email,
-      userName:user.username,
-      token:accessToken
-    }
+
+    const response = {
+      _id: user._id,
+      userId: user.googleId,
+      email: user.email,
+      userName: user.username,
+      token: accessToken,
+    };
 
     return {
       code: 200,
       status: true,
-      details:response
+      details: response,
     };
   } catch (error) {
-    const detail = error instanceof Error ? error.message : "Unknown error"
+    // If the error is an instance of CustomError, use it; otherwise create a generic one
+    const detail = error instanceof CustomError ? error.message : "Unknown error";
+    const statusCode = error instanceof CustomError ? error.statusCode : 400;
+
     // Handle errors
     return {
-      code: 400,
+      code: statusCode,
       status: false,
       message: "Error while creating user",
-      details: {detail}
+      details: { detail },
     };
   }
 };
