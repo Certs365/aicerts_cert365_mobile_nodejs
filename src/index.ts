@@ -7,6 +7,7 @@ import { googleStrategy } from "./config/googleStrategy";
 import { linkedinStrategy } from "./config/linkedinStrategy";
 import { isAuthenticated } from "./middlewares/authMiddleware";
 import errorHandler from "./middlewares/errorHandler";
+import { generateJwtToken } from "./utils/authUtils";
 import setupMiddleware from "./middlewares/setupMiddleware";
 import path from "path";
 import { getSecurityTxt } from "./controllers/user";
@@ -29,17 +30,18 @@ app.use("/api", router);
 app.get("/", isAuthenticated, (req: Request, res: Response) => {
   // If user is authenticated, retrieve their email
   const user = req.user as any; // 'req.user' is available after successful login
+  const JWTToken = generateJwtToken();
   if (user) {
     // Format the response according to the frontend team's needs
     const responseData = {
       success: true,
       statusCode: 200,
-      code: "jwt_auth_valid_credential",
+      code: JWTToken,
       message: "Credential is valid",
       data: {
         id: user.googleId, // User's ID (use user.id if you store it in a different field)
         email: user.email, // User's email
-        nicename: user.username, // Assuming 'username' is available in the user object
+        nickname: user.username, // Assuming 'username' is available in the user object
         firstName: user.firstName || "", // Optional, fill in if available
         lastName: user.lastName || "", // Optional, fill in if available
         displayName: user.username, // Display name for the user
