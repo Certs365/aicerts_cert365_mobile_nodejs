@@ -1,40 +1,28 @@
 import express, { Request, Response } from "express";
 import dotenv from "dotenv";
 import connectDB from "./config/db";
-import cors from "cors";
-import session from "express-session";
 import passport from "passport";
 import router from "./routes/user";
 import { googleStrategy } from "./config/googleStrategy";
 import { linkedinStrategy } from "./config/linkedinStrategy";
 import { isAuthenticated } from "./middlewares/authMiddleware";
 import errorHandler from "./middlewares/errorHandler";
+import setupMiddleware from "./middlewares/setupMiddleware";
+import path from "path";
+import { getSecurityTxt } from "./controllers/user";
 
 const app = express();
 
 // middleware setup
 dotenv.config();
 connectDB();
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Configure session management
-app.use(
-  session({
-    secret: "LearnJuly29$$@#", // Secret key to sign the session ID cookie
-    resave: false, // Prevents saving session if it wasn't modified during the request
-    saveUninitialized: true, // Save uninitialized sessions (new but not modified)
-  })
-);
-
-// Initialize Passport.js for authentication
-app.use(passport.initialize());
-app.use(passport.session()); // Enable persistent login sessions
+setupMiddleware(app)
 
 // Use the configured Google OAuth strategy for Passport.js
 passport.use(googleStrategy);
 passport.use(linkedinStrategy);
+// Disable the X-Powered-By header
+app.disable('x-powered-by');
 
 // Use the user-related routes under the "/api" endpoint
 app.use("/api", router);
@@ -91,10 +79,23 @@ app.get("/", isAuthenticated, (req: Request, res: Response) => {
     });
   }
 });
+// Serve the security.txt file
+app.get('/.well-known/security.txt',getSecurityTxt);
+
+// Catch-all route for undefined endpoints
+app.use((req: Request, res: Response) => {
+  res.status(404).json({
+    success: false,
+    statusCode: 404,
+    message: "Endpoint not found",
+  });
+});
+
+
 
 app.use(errorHandler)
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log("app running on port 3001");
+  console.log(`App running on port ${PORT}`);
 });

@@ -2,6 +2,7 @@ import mongoose, { MongooseError } from "mongoose";
 import { NextFunction, Request, Response } from "express";
 import User from "../models/user";
 import CustomError from "../middlewares/customError";
+import path from "path";
 
 // Define the signup controller function with typed parameters
 export const signup = async (req: Request, res: Response): Promise<void> => {
@@ -14,7 +15,7 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
       success: false,
       message: "All fields are required",
       details: null,
-    });
+    }); 
     return;
   }
 
@@ -109,3 +110,9 @@ export const logoutHandler = (
     });
   });
 };
+
+export const getSecurityTxt = (req: Request, res: Response)=>{
+  res.type('text/plain');
+  res.sendFile(path.join(__dirname,'..', '.well-known', 'security.txt'));
+
+}
