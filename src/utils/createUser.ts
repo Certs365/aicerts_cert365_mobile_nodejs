@@ -10,7 +10,7 @@ interface CreateUserResponse {
   details?: object;
 }
 
-export const createUser = async (profile: any, accessToken: string): Promise<CreateUserResponse> => {
+export const createUser = async (profile: any, accessToken: string, sourceApp:string): Promise<CreateUserResponse> => {
   try {
     const { id, displayName, emails, email } = profile;
 
@@ -29,6 +29,7 @@ export const createUser = async (profile: any, accessToken: string): Promise<Cre
       if (user) {
         // If user exists with email, link googleId to their account
         user.googleId = id;
+        user.sourceApp=sourceApp
         await user.save();
       } else {
         // Create a new user if not found
@@ -36,7 +37,7 @@ export const createUser = async (profile: any, accessToken: string): Promise<Cre
           googleId: id,
           username: displayName,
           email: userEmail,
-          sourceApp: "certs365",
+          sourceApp: sourceApp,
         });
 
         await user.save();

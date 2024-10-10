@@ -3,16 +3,27 @@ import dotenv from 'dotenv';
 import passport from 'passport';
 import User, { IUser } from '../models/user'; // Adjust path if needed
 import { createUser } from '../utils/createUser'; // Adjust path if needed
-import { Request, Response } from 'express';
+import { Request, Response,NextFunction } from 'express';
 import CustomError from '../middlewares/customError';
 
 dotenv.config();
 
+
 // LinkedIn Authentication Middleware
-export const linkedinAuth = passport.authenticate('linkedin', {
-  state: 'SOME STATE',  // Optional, can be used for CSRF protection
-  scope: ['profile', 'email'],
-});
+export const linkedinAuth = (req: Request, res: Response, next: NextFunction) => {
+  const sourceApp = req.query.sourceApp as string; // Extract sourceApp from the query
+  
+  passport.authenticate('linkedin', {
+    state: sourceApp,  // Optional, can be used for CSRF protection
+    scope: ['openid', 'profile', 'email'],
+  })(req, res, next);
+};
+
+
+// export const linkedinAuth = passport.authenticate('linkedin', {
+//   state: 'SOME STATE',  // Optional, can be used for CSRF protection
+//   scope: ['openid', 'profile', 'email'],
+// });
 
 export const linkedinAuthCallback = passport.authenticate('linkedin', {
   failureRedirect: '/login',
@@ -29,12 +40,14 @@ export const linkedinStrategy = new LinkedInStrategy(
     clientID: process.env.LINKEDIN_CLIENT_ID!,
     clientSecret: process.env.LINKEDIN_CLIENT_SECRET!,
     callbackURL: process.env.LINKEDIN_CALLBACK_URL!,
-    scope: ['profile', 'email', "openid"],
+    scope: ['openid', 'profile', 'email'],
+    passReqToCallback:true
   },
-  async (accessToken: string, refreshToken: string, profile: LinkedInProfile, done: passport.DoneCallback) => {
+  async (req:Request,accessToken: string, refreshToken: string, profile:LinkedInProfile, done: passport.DoneCallback) => {
     try {
+      const sourceApp = typeof req.query.state === 'string' ? req.query.state : "source app not provided"; // Use "default" if undefined
       
-      const result = await createUser(profile, accessToken);
+      const result = await createUser(profile, accessToken,sourceApp);
       if (result.status) {
         return done(null, result);
       } else {

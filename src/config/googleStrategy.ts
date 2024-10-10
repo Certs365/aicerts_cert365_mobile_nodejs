@@ -21,11 +21,15 @@ import CustomError from "../middlewares/customError";
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       callbackURL: process.env.GOOGLE_CALLBACK_URL!,
       scope: ["profile", "email"],
+      passReqToCallback:true
     },
-    async (accessToken: string, refreshToken: string, profile: Profile, done: VerifyCallback) => {
+    async (req:Request,accessToken: string, refreshToken: string, profile: Profile, done: VerifyCallback) => {
       try {
-     
-        const result = await createUser(profile, accessToken);
+
+         // Extract sourceApp from the request's query
+        const sourceApp = typeof req.query.state === 'string' ? req.query.state : "source app not provided"; // Use "default" if undefined
+
+        const result = await createUser(profile, accessToken, sourceApp);
         if (result.status) {
           return done(null, result);
         } else {
@@ -53,10 +57,15 @@ passport.deserializeUser(async (id: string, done: (err: any, user?: any) => void
   }
 });
 
-// Define authentication routes
-export const googleAuth = passport.authenticate("google", {
-  scope: ["profile", "email"],
-});
+// Initiates Google OAuth login
+export const googleAuth = (req: Request, res: Response, next: NextFunction) => {
+  const sourceApp = req.query.sourceApp as string; // Extract sourceApp from the query
+  
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    state: sourceApp, // Pass sourceApp via the state parameter
+  })(req, res, next);
+};
 
 export const googleAuthCallback = passport.authenticate("google", {
   failureRedirect: "/login",
