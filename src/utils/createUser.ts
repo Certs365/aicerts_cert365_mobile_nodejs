@@ -23,6 +23,11 @@ export const createUser = async (profile: any, accessToken: string, sourceApp:st
 
     // Check if user exists by googleId
     let user = await User.findOne({ googleId: id });
+    if (user){
+      user.sourceApp=sourceApp
+      await user.save()
+    }
+
     if (!user) {
       // Check if user exists by email
       user = await User.findOne({ email: userEmail });
