@@ -56,7 +56,6 @@ app.get("/", isAuthenticated, (req: Request, res: Response) => {
       jsonResponse
     )}`;
     console.log("Authentication successfull...")
-
      // Redirect the user to the deep link
      // Return an HTML page with JavaScript for redirection
      res.send(`

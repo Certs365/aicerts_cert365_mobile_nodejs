@@ -25,6 +25,6 @@ router.get("/auth/linkedin", linkedinAuth)
 router.get("/auth/linkedin/callback", linkedinAuthCallback, linkedinAuthRedirect)
 
 // Route to logout user 
-router.get("/logout",logoutHandler )
+router.post("/logout",logoutHandler )
 
 export default router

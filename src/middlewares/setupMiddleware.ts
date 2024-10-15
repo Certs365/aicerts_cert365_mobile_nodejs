@@ -4,17 +4,8 @@ import passport from "passport";
 import express, { Request, Response } from "express";
 
 const setupMiddleware = (app: any) => {
-  const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000').split(',');
-
   app.use(cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    credentials: true,
+    credentials: true, // Allow cookies to be sent with requests
   }));
 
   app.use(express.json());
@@ -25,9 +16,10 @@ const setupMiddleware = (app: any) => {
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
-      httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24,
+      secure: process.env.NODE_ENV === 'production', // Send cookie only over HTTPS in production
+      httpOnly: true, // Prevent client-side access to the cookie
+      sameSite: 'lax', // Use 'lax' or 'none' depending on your app's requirements
+      maxAge: 1000 * 60 * 60 * 24, // Cookie expiry time
     },
   }));
 

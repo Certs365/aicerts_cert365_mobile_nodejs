@@ -87,20 +87,22 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export const logoutHandler = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const logoutHandler = (req: Request, res: Response, next: NextFunction) => {
+  res.setHeader('Cache-Control', 'no-store');  // Prevent caching for this route
+
   req.logOut((err) => {
     if (err) {
-      return next(new CustomError("Logout failed", 500)); // Use CustomError for logout error
+      return next(new CustomError("Logout failed", 500));
     }
+
     req.session.destroy((err) => {
       if (err) {
-        return next(new CustomError("Session destruction failed", 500)); // Use CustomError for session error
+        return next(new CustomError("Session destruction failed", 500));
       }
-      res.clearCookie("connect.sid");
+
+      // Ensure the cookie is properly cleared
+      res.clearCookie("connect.sid", { path: '/', httpOnly: true, secure: true, sameSite: 'lax'  });
+
       res.status(200).json({
         code: 200,
         status: true,
@@ -110,6 +112,7 @@ export const logoutHandler = (
     });
   });
 };
+
 
 export const getSecurityTxt = (req: Request, res: Response)=>{
   res.type('text/plain');
