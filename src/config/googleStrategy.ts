@@ -3,7 +3,6 @@ import dotenv from "dotenv";
 import passport, {Profile} from "passport";
 
 
-
 // Load environment variables
 dotenv.config();
 

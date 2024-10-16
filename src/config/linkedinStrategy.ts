@@ -8,7 +8,6 @@ import CustomError from '../middlewares/customError';
 
 dotenv.config();
 
-
 // LinkedIn Authentication Middleware
 export const linkedinAuth = (req: Request, res: Response, next: NextFunction) => {
   const sourceApp = req.query.sourceApp as string; // Extract sourceApp from the query
@@ -18,7 +17,6 @@ export const linkedinAuth = (req: Request, res: Response, next: NextFunction) =>
     scope: ['openid', 'profile', 'email'],
   })(req, res, next);
 };
-
 
 // export const linkedinAuth = passport.authenticate('linkedin', {
 //   state: 'SOME STATE',  // Optional, can be used for CSRF protection
