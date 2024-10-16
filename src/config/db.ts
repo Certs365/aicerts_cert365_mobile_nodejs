@@ -31,7 +31,7 @@ const connectDB = async (): Promise<boolean> => {
       console.error("MongoDB connection URI is not defined in environment variables.");
       return false; // Return false if URI is not defined
     }
-    console.log("Connecting to MongoDB with URI:", mongoUri);
+    // console.log("Connecting to MongoDB with URI:", mongoUri);
     // Use connection options
     connection = await mongoose.connect(mongoUri);
     console.log(`MongoDB Connected: ${connection.connection.host}`);
