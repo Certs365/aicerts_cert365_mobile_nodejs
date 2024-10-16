@@ -9,7 +9,6 @@ import { isAuthenticated } from "./middlewares/authMiddleware";
 import errorHandler from "./middlewares/errorHandler";
 import { generateJwtToken } from "./utils/authUtils";
 import setupMiddleware from "./middlewares/setupMiddleware";
-import path from "path";
 import { getSecurityTxt } from "./controllers/user";
 
 const app = express();
@@ -91,7 +90,6 @@ app.use((req: Request, res: Response) => {
     message: "Endpoint not found",
   });
 });
-
 
 
 app.use(errorHandler)

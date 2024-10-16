@@ -1,7 +1,6 @@
 import { Strategy as GoogleStrategy, VerifyCallback } from "passport-google-oauth2";
 import dotenv from "dotenv";
-import passport, {Profile} from "passport";
-
+import passport, { Profile } from "passport";
 
 
 // Load environment variables
@@ -14,33 +13,67 @@ import { createUser } from "../utils/createUser";
 import CustomError from "../middlewares/customError";
 
 // Configure Google OAuth2 strategy
+// export const googleStrategy = new GoogleStrategy(
+//   {
+//     clientID: process.env.GOOGLE_CLIENT_ID!,
+//     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+//     callbackURL: process.env.GOOGLE_CALLBACK_URL!,
+//     scope: ["profile", "email"],
+//     passReqToCallback: true
+//   },
+//   async (req: Request, accessToken: string, refreshToken: string, profile: Profile, done: VerifyCallback) => {
+//     try {
 
- export const googleStrategy= new GoogleStrategy(
-    {
-      clientID: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      callbackURL: process.env.GOOGLE_CALLBACK_URL!,
-      scope: ["profile", "email"],
-      passReqToCallback:true
-    },
-    async (req:Request,accessToken: string, refreshToken: string, profile: Profile, done: VerifyCallback) => {
+//       // Extract sourceApp from the request's query
+//       const sourceApp = typeof req.query.state === 'string' ? req.query.state : "source app not provided"; // Use "default" if undefined
+
+//       const result = await createUser(profile, accessToken, sourceApp);
+//       if (result.status) {
+//         return done(null, result);
+//       } else {
+//         return done(new CustomError(result.message || "Error while creating user", 400)); // Use standardized error
+//       }
+//     } catch (error) {
+//       return done(new CustomError("Internal server error", 500)); // Handle any unexpected errors
+//     }
+//   }
+// );
+
+export const googleStrategy = new GoogleStrategy(
+  {
+    clientID: process.env.GOOGLE_CLIENT_ID!,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    callbackURL: process.env.GOOGLE_CALLBACK_URL!,
+    scope: ["profile", "email"],
+    passReqToCallback: true,
+  },
+  async (req: Request, accessToken: string, refreshToken: string, profile: Profile, done: VerifyCallback) => {
+    const sourceApp = typeof req.query.state === 'string' ? req.query.state : "source app not provided"; // Use "default" if undefined
+
+    const maxRetries = 3; // Define the number of retries
+    let attempt = 0;
+    let result;
+
+    while (attempt < maxRetries) {
       try {
-
-         // Extract sourceApp from the request's query
-        const sourceApp = typeof req.query.state === 'string' ? req.query.state : "source app not provided"; // Use "default" if undefined
-
-        const result = await createUser(profile, accessToken, sourceApp);
+        result = await createUser(profile, accessToken, sourceApp);
         if (result.status) {
           return done(null, result);
         } else {
           return done(new CustomError(result.message || "Error while creating user", 400)); // Use standardized error
         }
       } catch (error) {
-        return done(new CustomError("Internal server error", 500)); // Handle any unexpected errors
+        attempt++;
+        if (attempt >= maxRetries) {
+          // Return an internal server error if all attempts fail
+          return done(new CustomError("Internal server error", 500)); // Handle any unexpected errors
+        }
+        // Optionally, you can add a delay before retrying
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retrying
       }
     }
-  )
-
+  }
+);
 
 // Serialize user ID into session
 passport.serializeUser((user: any, done: (err: any, id?: any) => void) => {
@@ -60,7 +93,7 @@ passport.deserializeUser(async (id: string, done: (err: any, user?: any) => void
 // Initiates Google OAuth login
 export const googleAuth = (req: Request, res: Response, next: NextFunction) => {
   const sourceApp = req.query.sourceApp as string; // Extract sourceApp from the query
-  
+
   passport.authenticate("google", {
     scope: ["profile", "email"],
     state: sourceApp, // Pass sourceApp via the state parameter
