@@ -26,10 +26,10 @@ app.disable('x-powered-by');
 
 // Use the user-related routes under the "/api" endpoint
 app.use("/api", router);
-app.get("/", isAuthenticated, (req: Request, res: Response) => {
+app.get("/", isAuthenticated, async (req: Request, res: Response) => {
   // If user is authenticated, retrieve their email
   const user = req.user as any; // 'req.user' is available after successful login
-  const JWTToken = generateJwtToken();
+  const JWTToken = await generateJwtToken();
   if (user) {
     // Format the response according to the frontend team's needs
     const responseData = {
