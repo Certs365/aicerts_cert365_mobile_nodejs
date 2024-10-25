@@ -9,6 +9,11 @@
     "noImplicitAny": true,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
-    "skipLibCheck": true
-  }
+    "skipLibCheck": true,
+    "types": [],  // Change this line to an empty array
+    "typeRoots": ["node_modules/@types"]
+  },
+  "include": [
+    "src/**/*",  // or your source directory
+  ]
 }

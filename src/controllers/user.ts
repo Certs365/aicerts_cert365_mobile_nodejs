@@ -1,3 +1,4 @@
+import dotenv from 'dotenv';
 import mongoose, { MongooseError } from "mongoose";
 import { NextFunction, Request, Response } from "express";
 import User from "../models/user";
@@ -5,9 +6,45 @@ import Authentication from "../models/schema";
 import CustomError from "../middlewares/customError";
 import path from "path";
 import bcrypt from "bcryptjs";
+import * as admin from 'firebase-admin';
 
 import { generateOTP, sendEmail, sendWelcomeMail } from "../utils/customUtils";
 import { generateJwtToken } from "../utils/authUtils";
+
+dotenv.config();
+
+interface ServiceAccount {
+  type: string;
+  project_id: string;
+  private_key_id: string;
+  private_key: string;
+  client_email: string;
+  client_id: string;
+  auth_uri: string;
+  token_uri: string;
+  auth_provider_x509_cert_url: string;
+  client_x509_cert_url: string;
+  universe_domain?: string;  // Optional, if not always present
+}
+
+const serviceAccount: ServiceAccount = {
+  type: process.env.TYPE as string,
+  project_id: process.env.PROJECT_ID as string,
+  private_key_id: process.env.PRIVATE_KEY_ID as string,
+  private_key: process.env.PRIVATE_KEY?.replace(/\\n/g, '\n') as string,
+  client_email: process.env.CLIENT_EMAIL as string,
+  client_id: process.env.CLIENT_ID as string,
+  auth_uri: process.env.AUTH_URI as string,
+  token_uri: process.env.TOKEN_URI as string,
+  auth_provider_x509_cert_url: process.env.AUTH_PROVIDER_X509_CERT_URL as string,
+  client_x509_cert_url: process.env.CLIENT_X509_CERT_URL as string,
+  universe_domain: process.env.UNIVERSE_DOMAIN,
+};
+
+// Initialize the app
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount as admin.ServiceAccount), // Ensure correct type
+});
 
 // Define the signup controller function with typed parameters
 export const signup = async (req: Request, res: Response): Promise<void> => {
@@ -300,7 +337,7 @@ export const userLogin = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export const logoutHandler = (req: Request, res: Response, next: NextFunction) => {
+export const _logoutHandler = (req: Request, res: Response, next: NextFunction) => {
   res.setHeader('Cache-Control', 'no-store');  // Prevent caching for this route
 
   req.logOut((err) => {
@@ -321,6 +358,40 @@ export const logoutHandler = (req: Request, res: Response, next: NextFunction) =
         status: true,
         message: "User logged out successfully.",
         details: "",
+      });
+    });
+  });
+};
+
+export const logoutHandler = (req: Request, res: Response, next: NextFunction) => {
+  res.setHeader('Cache-Control', 'no-store');  // Prevent caching for this route
+
+  req.logOut((err) => {
+    if (err) {
+      return next({
+        status: 500,
+        message: "Logout failed",
+        details: err.message
+      });
+    }
+
+    req.session.destroy((err) => {
+      if (err) {
+        return next({
+          status: 500,
+          message: "Session destruction failed",
+          details: err.message
+        });
+      }
+
+      // Clear the cookie
+      res.clearCookie("connect.sid", { path: '/', httpOnly: true, secure: true, sameSite: 'lax' });
+
+      res.status(200).json({
+        status: 200,
+        success: true,
+        message: "User logged out successfully.",
+        details: null,
       });
     });
   });
