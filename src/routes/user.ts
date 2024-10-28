@@ -1,11 +1,17 @@
 import { Request, Router, Response } from "express";
-import { logoutHandler, signup } from "../controllers/user";
+import { logoutHandler, signup, userSignup, userLogin, forgotPassword, resetPassword } from "../controllers/user";
 import { googleAuth, googleAuthCallback, googleAuthRedirect } from "../config/googleStrategy";
 import { linkedinAuth, linkedinAuthCallback, linkedinAuthRedirect } from "../config/linkedinStrategy";
 import connectDB from "../config/db";
 
 const router = Router()
-router.route("/signup").post(signup)
+router.route("/signup").post(signup);
+
+// route to perform normal user signup
+router.route("/userSignup").post(userSignup);
+
+// route to perform normal user login
+router.route("/userLogin").get(userLogin);
 
 // Health check route
 // router.get("/health", (req: Request, res: Response) => {
@@ -44,6 +50,11 @@ router.get("/health", async (req: Request, res: Response) => {
     });
   }
 });
+
+// route to forgot password
+router.post("/forgotPassword", forgotPassword);
+// route to reset password
+router.post("/resetPassword", resetPassword);
 
 // route to initiate Google OAuth login
 router.route("/auth/google").get(googleAuth)

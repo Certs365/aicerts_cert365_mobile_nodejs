@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 
 dotenv.config();
 
-function generateJwtToken() {
+const generateJwtToken = async() => {
   try {
     const expiresInMinutes = process.env.JWT_EXPIRE;
     const claims = { authType: "User" };
