@@ -193,7 +193,7 @@ export const userSignup = async (req: Request, res: Response): Promise<void> => 
     }
 
     // Send welcome mail to the user on signup
-    // await sendWelcomeMail(username, email);
+    await sendWelcomeMail(username, email);
 
     // Return success response with user details
     res.status(200).json({
@@ -420,7 +420,7 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
         await authentication.save();
       }
       // Push the OTP to the respective user email
-      // await sendEmail(userExists.username, email, getOTP);
+      await sendEmail(userExists.username, email, getOTP);
       res.status(200).json({
         status: 200,
         success: true,
@@ -467,7 +467,85 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
       details: errorDetails,
     });
   }
-}
+};
+
+// Define the verify user (with OTP)
+export const verifyUser = async (req: Request, res: Response): Promise<void> => {
+  const { email, otp } = req.body;
+  try {
+    // Check if the user already exists
+    const userExists = await User.findOne({ email });
+    // Return success response with user details
+    if (userExists) {
+      const authExist = await Authentication.findOne({ email });
+      if (authExist) {
+        if(authExist.otp == otp){
+        res.status(200).json({
+          status: 200,
+          success: true,
+          message: "User OTP verified",
+          details: email,
+        });
+        return;
+      } else {
+        res.status(400).json({
+          status: 400,
+          success: false,
+          message: "Ivalid OTP, Please check and try again...",
+          details: email,
+        });
+        return;
+      }
+      } else {
+        res.status(400).json({
+          status: 400,
+          success: false,
+          message: "Unable to validate, Please try again...",
+          details: email,
+        });
+        return;
+      }
+
+    } else {
+      res.status(400).json({
+        status: 400,
+        success: false,
+        message: "User / Email does not exist",
+        details: email,
+      });
+      return;
+    }
+  } catch (error) {
+    let statusCode = 500;
+    let errorMessage = "Unable to reach the server, Please try again...";
+    let errorDetails: any = null;
+
+    // Handle specific Mongoose validation errors
+    if (error instanceof mongoose.Error.ValidationError) {
+      const messages = Object.values(error.errors).map((val) => val.message);
+      statusCode = 400;
+      errorMessage = "OTP Validation error";
+      errorDetails = messages.join(", ");
+    }
+
+    // Handle unique constraint errors (e.g., no email)
+    else if (error instanceof mongoose.MongooseError) {
+      statusCode = 400;
+      errorMessage = "Email not found / Invalid email";
+    }
+
+    // Log error details for further investigation
+    console.error("User OTP verification error:", error);
+
+    // Return standardized error response
+    res.status(statusCode).json({
+      status: statusCode,
+      success: false,
+      message: errorMessage,
+      details: errorDetails,
+    });
+  }
+};
 
 // Define the resetPassword controller function
 export const resetPassword = async (req: Request, res: Response): Promise<void> => {
