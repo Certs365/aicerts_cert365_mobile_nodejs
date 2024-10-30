@@ -6,7 +6,7 @@ dotenv.config();
 // Define the mail options object type
 const mailOptions: SendMailOptions = {
     from: {
-        name: 'AICerts Admin',
+        name: 'Certs365 Admin',
         address: process.env.USER_MAIL || '',
     },
     to: '',
