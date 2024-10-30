@@ -491,7 +491,7 @@ export const verifyUser = async (req: Request, res: Response): Promise<void> => 
         res.status(400).json({
           status: 400,
           success: false,
-          message: "Ivalid OTP, Please check and try again...",
+          message: "Invalid OTP, Please check and try again...",
           details: email,
         });
         return;
