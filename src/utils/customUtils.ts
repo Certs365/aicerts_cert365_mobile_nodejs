@@ -6,7 +6,7 @@ dotenv.config();
 // Define the mail options object type
 const mailOptions: SendMailOptions = {
     from: {
-        name: 'AICerts Admin',
+        name: 'Certs365 Admin',
         address: process.env.USER_MAIL || '',
     },
     to: '',
@@ -36,7 +36,7 @@ const sendEmail = async (name: string, email: string, otp: number): Promise<void
   If you did not request this code, please ignore this message.
           
   Best regards,
-  The AICerts Team`;
+  The Certs365 Team`;
         transporter.sendMail(mailOptions);
         console.log('Email sent successfully');
     } catch (error) {
@@ -47,17 +47,15 @@ const sendEmail = async (name: string, email: string, otp: number): Promise<void
 const sendWelcomeMail = async (name: string, email: string) => {
     try {
       mailOptions.to = email;
-      mailOptions.subject = `Welcome to AICerts`;
+      mailOptions.subject = `Welcome to Certs365`;
       mailOptions.text = `Hi ${name},
   
-  Welcome to the AICerts Portal, Your registration is now complete.
-  
-  Your account details will be reviewed and approved by our admin team. Once your account has been approved, you will receive a notification with further instructions.
+  Welcome to the Certs365 Portal, Your registration is now completed.
   
   Thank you for joining us.
   
   Best regards,
-  The AICerts Team.`;
+  The Certs365 Team.`;
       transporter.sendMail(mailOptions);
       console.log('Email sent successfully');
     } catch (error) {

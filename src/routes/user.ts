@@ -1,5 +1,5 @@
 import { Request, Router, Response } from "express";
-import { logoutHandler, signup, userSignup, userLogin, forgotPassword, resetPassword } from "../controllers/user";
+import { logoutHandler, signup, userSignup, userLogin, forgotPassword, resetPassword, verifyUser } from "../controllers/user";
 import { googleAuth, googleAuthCallback, googleAuthRedirect } from "../config/googleStrategy";
 import { linkedinAuth, linkedinAuthCallback, linkedinAuthRedirect } from "../config/linkedinStrategy";
 import connectDB from "../config/db";
@@ -22,7 +22,7 @@ router.route("/userLogin").get(userLogin);
 //     timestamp: new Date().toISOString(),
 //   });
 // });
-router.get("/health", async (req: Request, res: Response) => {
+router.post("/health", async (req: Request, res: Response) => {
   try {
     const dbStatus = await connectDB();
     const response = {
@@ -53,6 +53,8 @@ router.get("/health", async (req: Request, res: Response) => {
 
 // route to forgot password
 router.post("/forgotPassword", forgotPassword);
+// route to verify user (with OTP)
+router.get("/verifyUser", verifyUser);
 // route to reset password
 router.post("/resetPassword", resetPassword);
 
