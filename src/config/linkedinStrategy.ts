@@ -29,36 +29,8 @@ export const linkedinAuthCallback = passport.authenticate('linkedin', {
 
 export const linkedinAuthRedirect = (req: Request, res: Response): void => {
   // Successful authentication, redirect home or wherever you want.
-  res.redirect('/');
+  res.redirect('/mob/');
 };
-
-// LinkedIn Strategy Configuration
-// export const linkedinStrategy = new LinkedInStrategy(
-//   {
-//     clientID: process.env.LINKEDIN_CLIENT_ID!,
-//     clientSecret: process.env.LINKEDIN_CLIENT_SECRET!,
-//     callbackURL: process.env.LINKEDIN_CALLBACK_URL!,
-//     scope: ['openid', 'profile', 'email'],
-//     passReqToCallback:true
-//   },
-//   async (req:Request,accessToken: string, refreshToken: string, profile:LinkedInProfile, done: passport.DoneCallback) => {
-//     try {
-//       const sourceApp = typeof req.query.state === 'string' ? req.query.state : "source app not provided"; // Use "default" if undefined
-      
-//       const result = await createUser(profile, accessToken,sourceApp);
-//       if (result.status) {
-//         return done(null, result);
-//       } else {
-
-//          // Use CustomError for standardized error response
-//          return done(new CustomError(result.message || "Error while creating user", 400));
-//       }
-//     } catch (error) {
-//       // Return an internal server error if something goes wrong
-//       return done(new CustomError("Internal server error", 500));
-//     }
-//   }
-// );
 export const linkedinStrategy = new LinkedInStrategy(
   {
     clientID: process.env.LINKEDIN_CLIENT_ID!,

@@ -106,5 +106,5 @@ export const googleAuthCallback = passport.authenticate("google", {
 
 export const googleAuthRedirect = (req: Request, res: Response) => {
   // Successful authentication, redirect home or wherever you want.
-  res.redirect("/");
+  res.redirect("/mob/");
 };
