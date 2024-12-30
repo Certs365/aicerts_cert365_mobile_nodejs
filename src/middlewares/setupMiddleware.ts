@@ -4,8 +4,18 @@ import passport from "passport";
 import express, { Request, Response } from "express";
 
 const setupMiddleware = (app: any) => {
+  const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [];
   app.use(cors({
-    credentials: true, // Allow cookies to be sent with requests
+    origin: (origin, callback) => {
+      // If no Origin (mobile apps) or if the Origin is allowed, allow the request
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        // Block if the Origin is not allowed
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true, // Allow cookies to be sent
   }));
 
   app.use(express.json());
